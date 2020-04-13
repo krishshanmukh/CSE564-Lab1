@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <style>
+
+
+        body {
+        font: 10px sans-serif;
+        }
+
+        .axis path,
+        .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+        }
+
+        .rect {
+        fill: orange;
+        }
+
+        .rect:hover{
+        fill: orangered ;
+        }
+
+        .x.axis path {
+        display: none;
+        }
+
+        .d3-tip {
+        line-height: 1;
+        padding: 6px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 4px;
+        font-size: 12px;
+        }
+    
+        /* Creates a small triangle extender for the tooltip */
+        .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+        }
+    
+        /* Style northward tooltips specifically */
+        .d3-tip.n:after {
+        margin: -2px 0 0 0;
+        top: 100%;
+        left: 0;
+        }
+
+        .custom-centered{
+            margin:0 auto;
+            width:700px;
+        }
+
+    </style>
+    <title>CSE 564</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+    <script src="http://d3js.org/d3.v4.js"></script>
+    <script src="scripts/d3-tip.js"></script>
+    <script src="scripts/helper.js"></script>
+
+    <div class="card">
+        <!-- Default panel contents -->
+        <div class="card-header"><div class="d-flex justify-content-between">
+            <div><h3>CSE 564 - Mini Project 1</h3></div> 
+            <div style="text-align: right;"><h3><a href="https://www.kaggle.com/pavansubhasht/ibm-hr-analytics-attrition-dataset">IBM HR Employee Attrition</a></h3></div>
+        </div></div>
+        <div class="card-body">
+
+            <!-- <div class="container "> -->
+                        <div class="form-inline custom-centered">
+                                <label for="exampleFormControlSelect1">Select Variable: &emsp; </label>
+                                <select class="form-control" id="exampleFormControlSelect1">
+                                <option value="">Select a value</option>
+                                <option value="Age">Age</option>
+                                <option value="DailyRate">Daily Rate</option>
+                                <option value="MonthlyIncome">Monthly Income</option>
+                                <option value="YearsAtCompany">Years At Company</option>
+                                <option value="TotalWorkingYears">Total Working Years</option>
+                                <option value="NumCompaniesWorked">Num Companies Worked</option>
+                                <option value="PercentSalaryHike">PercentSalaryHike</option>
+                                <option value="Department">Department</option>
+                                <option value="Attrition">Attrition rate</option>
+                                <option value="Education">Education</option>
+                                <option value="BusinessTravel">Business travel</option>
+                                <option value="Gender">Gender</option>
+                                <option value="EnvironmentSatisfaction">Environment Satisfaction</option>
+                                <option value="TrainingTimesLastYear">Training times last yr</option>
+                                <option value="YearsWithCurrManager">Years with current manager</option>
+                                </select>
+                            <!-- </div> -->
+                        </div>
+                        <br/>
+                        <div id="bin" class="form-inline custom-centered" style="text-align: right;">
+                                <label class="control-label" for="nBin">Select bins: &emsp;</label>
+                                <input class='slider form-control' type="range" min="1" max="100" value="10" id="nBin">
+                        </div>
+                        <br/>
+                <!-- </div> -->
+                <div id="my_dataviz" class="jumbotron align-content:center"></div>
+            <!-- </div> -->
+        </div>
+    </div>
+    </div>
+      
+        <!-- Table -->
+        <!-- <table class="table">
+          ...
+        </table>
+      </div>
+    <h2 style="text-align: center;">CSE 564 - Mini Project 1</h2>
+    
+    <form class="form-horizontal">
+            <div id="bin" class="form-group form-horizontal" style="text-align: center;">
+                <label class="control-label" for="nBin">Select bins</label>
+                <input class='slider form-control' type="range" min="1" max="100" value="20" id="nBin">
+            </div>  
+    </form> -->
+
+    <!-- <div id="my_dataviz" style="align-content: center;"></div> -->
+        <!-- <input class='form-control center' type="number" min="1" max="100" step="30" value="20" id="nBin"> -->
+
+    <script>
+
+        
+        var col_data = [];
+        var col = "";
+        document.getElementById("bin").hidden = true;
+        d3.csv("data.csv", function(data) {
+            // Listen to the button -> update if user change it
+            d3.select("#nBin").on("input", function() {
+                var v = document.getElementById("exampleFormControlSelect1");
+                updateHistogram(col, col_data, +this.value, v.options[v.selectedIndex].text);
+            });
+
+            // Listen to the button -> update if user change it
+            d3.select("#exampleFormControlSelect1").on("change", function() {
+                col = this.value;
+                col_data = [];
+                var textValue = this.options[this.selectedIndex].text;
+                console.log(textValue);
+                bars = ["TrainingTimesLastYear","Department", "Education", "Attrition", "BusinessTravel", "Gender", "EnvironmentSatisfaction", "NumCompaniesWorked"];
+                if (bars.indexOf(col) != -1) {
+                    for (let index = 0; index < data.length; index++) {
+                        col_data.push(data[index][col]);
+                    }
+                    // console.log(col_data)
+                    updateBarChart(col, col_data, 0, textValue);
+                    document.getElementById("bin").hidden = true;
+                } else {
+                    for (let index = 0; index < data.length; index++) {
+                        col_data.push(parseInt(data[index][col]));
+                    }
+                    var nbins = document.getElementById("nBin").value;
+                    updateHistogram(col, col_data, nbins, textValue);
+                    document.getElementById("bin").hidden = false;
+                }
+            });
+            
+            
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </div>
+</body>
